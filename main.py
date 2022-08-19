@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding=utf-8 -*-
-from io import BufferedReader
 import os
 
 __version__ = os.environ["VER"] if os.environ.get("VER") else "0.1.1"
@@ -12,6 +11,7 @@ __license__ = "MIT"
 import argparse
 import json
 import sys
+from io import BufferedReader
 from re import search
 from subprocess import PIPE, Popen, check_output
 from typing import NoReturn, Optional, Text
