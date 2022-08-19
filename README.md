@@ -1,6 +1,8 @@
+# PF-Checker
+
 ## How it works
 
-```
+```bash
 usage: PF-Checker [-h] [--type TYPE] [--version]
 
 options:
@@ -10,21 +12,29 @@ options:
 ```
 
 **Example #1**:
+
 ```bash
 > docker build -t pf-checker:0.1.0 .
 > docker run -ti --rm  --privileged --env INVMODE='Power Supply' pf-checker
 ```
+
 **Example #2**:
+
 ```bash
 > docker build -t pf-checker:0.1.0 .
 > docker run -ti --rm  --privileged --env INVMODE='Fan' pf-checker
 ```
 
 **Example #3**:
+
 ```bash
 >  docker build --tag pf-checker:0.1.0  https://github.com/Operator2024/PF-checker.git
 > docker run -ti --rm  --privileged --env INVMODE='Fan' pf-checker
 ```
+
+## Code style
+⚠️ To format and lint already modified code, run **[./format.sh](format.sh)**
+
 
 ## License
 

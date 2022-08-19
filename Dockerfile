@@ -1,7 +1,7 @@
 FROM python:3.10.5-alpine3.15
 # LABEL maintainer="Operator2024 <work.pwnz+github@gmail.com>"
-LABEL version="0.1.0"
-ENV VER="0.1.0"
+LABEL version="0.1.1"
+ENV VER="0.1.1"
 ENV INVMODE=""
 ENV TZ=Asia/Yekaterinburg
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \ 
