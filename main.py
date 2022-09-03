@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 import os
 
-__version__ = os.environ["VER"] if os.environ.get("VER") else "0.1.1"
+__version__ = os.environ["VER"] if os.environ.get("VER") else "0.1.2"
 
 __author__ = "Vladimir Belomestnykh aka Operator2024"
 
@@ -14,12 +14,12 @@ import sys
 from io import BufferedReader
 from re import search
 from subprocess import PIPE, Popen, check_output
-from typing import NoReturn, Optional, Text
+from typing import Dict, Text, Union
 
 import jc
 
 
-def main(sdr_type: Text = "") -> Optional[NoReturn]:
+def main(sdr_type: Text = "") -> Union[Dict, Text, None]:
     storage = dict()
     result = b""
     if sdr_type is None:
@@ -40,44 +40,45 @@ def main(sdr_type: Text = "") -> Optional[NoReturn]:
         result = proc.stdout.read() + proc.stderr.read()
     if len(result) == 0:
         return None
-    if proc.stdout and sdr_type == "Fan":
+    if proc.stdout and sdr_type == "Fan" and "not open" not in result.decode():
         for i in result.decode().split("\n"):
             if len(i) > 0:
                 SKIP = False
+                _fname = ""
                 for idx, val in enumerate(i.split("|")):
-                    _name = ""
                     if idx == 0:
-                        _name = val.lstrip(" ").rstrip(" ")
-                        if "FAN" in _name.upper():
+                        _fname = val.lstrip(" ").rstrip(" ")
+                        if "FAN" in _fname.upper():
                             if (
-                                "FRNT" not in _name.upper()
-                                and "REAR" not in _name.upper()
+                                "FRNT" not in _fname.upper()
+                                and "REAR" not in _fname.upper()
                             ):
                                 SKIP = True
-                            if len(_name) <= 5 and SKIP is True:
+                            if len(_fname) <= 5 and SKIP is True:
                                 SKIP = False
                     elif idx == 1 and SKIP is False:
-                        storage[_name] = {"SensorName": val.lstrip(" ").rstrip(" ")}
+                        storage[_fname] = {"SensorName": val.lstrip(" ").rstrip(" ")}
                     elif idx == 2 and SKIP is False:
                         if val.lstrip(" ").rstrip(" ") == "lnr":
-                            storage[_name]["State"] = "Lower Non-Recoverable"
+                            storage[_fname]["State"] = "Lower Non-Recoverable"
                         elif val.lstrip(" ").rstrip(" ") == "lcr":
-                            storage[_name]["State"] = "Lower Critical"
+                            storage[_fname]["State"] = "Lower Critical"
                         elif val.lstrip(" ").rstrip(" ") == "lnc":
-                            storage[_name]["State"] = "Lower Non-Critical"
+                            storage[_fname]["State"] = "Lower Non-Critical"
                         elif val.lstrip(" ").rstrip(" ") == "unc":
-                            storage[_name]["State"] = "Upper Non-Critical"
+                            storage[_fname]["State"] = "Upper Non-Critical"
                         elif val.lstrip(" ").rstrip(" ") == "ucr":
-                            storage[_name]["State"] = "Upper Critical"
+                            storage[_fname]["State"] = "Upper Critical"
                         elif val.lstrip(" ").rstrip(" ") == "unr":
-                            storage[_name]["State"] = "Upper Non-Recoverable"
+                            storage[_fname]["State"] = "Upper Non-Recoverable"
                         else:
-                            storage[_name]["State"] = val.lstrip(" ").rstrip(" ")
+                            storage[_fname]["State"] = val.lstrip(" ").rstrip(" ")
                     elif idx == 3 and SKIP is False:
-                        storage[_name]["Instance"] = val.lstrip(" ").rstrip(" ")
+                        storage[_fname]["Instance"] = val.lstrip(" ").rstrip(" ")
                     elif idx == 4 and SKIP is False:
-                        storage[_name]["Speed"] = val.lstrip(" ").rstrip(" ")
-    elif proc.stdout and sdr_type == "Power Supply":
+                        storage[_fname]["Speed"] = val.lstrip(" ").rstrip(" ")
+    elif proc.stdout and sdr_type == "Power Supply" and\
+            "not open" not in result.decode():
         psu_count = -1
         for i in result.decode().split("\n"):
             if len(i) > 0:
@@ -120,14 +121,14 @@ def main(sdr_type: Text = "") -> Optional[NoReturn]:
         else:
             pass
     else:
-        pass
-
-    print(json.dumps(storage))
+        return result.decode()
+    return storage
 
 
 if __name__ == "__main__":
-    description = "PSU and Fan inventory system aka PF-checker"
-    parser = argparse.ArgumentParser(prog="PF-Checker")
+    _name = "PF-scanner"
+    description = f"PSU and Fan inventory system aka {_name}"
+    parser = argparse.ArgumentParser(prog=_name)
     parser.add_argument(
         "--type",
         "-T",
@@ -157,6 +158,8 @@ if __name__ == "__main__":
                 })
             )
         else:
-            main(args.type[0])
+            ret = main(args.type[0])
+            if ret:
+                print(json.dumps({_name: [ret]}))
     else:
         parser.print_help()
